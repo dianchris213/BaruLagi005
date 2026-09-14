@@ -193,6 +193,8 @@ function Index() {
   const [daily, setDaily] = useState<DailyStore>({ day: "", in: 0, out: 0 });
   const [saved, setSaved] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  /** Ticks only on the client so the zoned clock never mismatches during hydration. */
+  const [now, setNow] = useState<Date>(() => new Date(0));
 
   const [insight, setInsight] = useState("");
   const [insightLoading, setInsightLoading] = useState(false);
@@ -214,8 +216,16 @@ function Index() {
     setProfile(loadProfile());
     setFlows(loadFlows(monthKey(zone)));
     setDaily(loadDaily(dayKey(zone)));
+    setNow(new Date());
     setReady(true);
   }, []);
+
+  /* Live clock for the timezone card (client-only). */
+  useEffect(() => {
+    if (!ready) return;
+    const id = window.setInterval(() => setNow(new Date()), 30_000);
+    return () => window.clearInterval(id);
+  }, [ready]);
 
   /* 2. Timezone-aware rollover: on zone change, at zoned midnight, on refocus. */
   const syncPeriods = useCallback(
