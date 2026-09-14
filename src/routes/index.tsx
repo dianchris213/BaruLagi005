@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Bell,
@@ -7,6 +7,7 @@ import {
   Droplets,
   Globe2,
   Home,
+  PiggyBank,
   Loader2,
   Minus,
   Plus,
@@ -31,6 +32,8 @@ import {
   monthLabel,
   msUntilZonedMidnight,
   timezoneLabel,
+  zoneOffsetLabel,
+  zonedNowLabel,
   type TimezoneId,
 } from "@/lib/timezone";
 import {
@@ -41,8 +44,8 @@ import {
   type Flow,
   type FlowStore,
 } from "@/lib/reset";
+import { ManualDateReset } from "@/components/ManualDateReset";
 import { ResetTester } from "@/components/ResetTester";
-import { WalletFlowEntry } from "@/components/WalletFlowEntry";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -363,25 +366,6 @@ function Index() {
   const totalOut = Object.values(flows.data).reduce((s, f) => s + (f?.out ?? 0), 0);
   const periodKey = flows.month || monthKey(timezone);
 
-  /* Record a validated cash flow; also feeds today's driver net. */
-  const recordFlow = useCallback(
-    (walletId: string, kind: "in" | "out", amount: number) => {
-      setFlows((f) => {
-        const current = f.data[walletId] ?? { in: 0, out: 0 };
-        return {
-          month: f.month || monthKey(timezone),
-          data: { ...f.data, [walletId]: { ...current, [kind]: current[kind] + amount } },
-        };
-      });
-      setDaily((d) => ({
-        day: d.day || dayKey(timezone),
-        in: kind === "in" ? d.in + amount : d.in,
-        out: kind === "out" ? d.out + amount : d.out,
-      }));
-    },
-    [timezone],
-  );
-
   /* AI insight from locally stored data only. */
   const requestInsight = useServerFn(generateInsight);
   const insightRun = useRef(0);
@@ -512,7 +496,6 @@ function Index() {
                     );
                   })}
                 </ul>
-                <WalletFlowEntry wallets={WALLETS} disabled={!ready} onRecord={recordFlow} />
               </section>
 
               <section aria-label="Tagihan Bulanan" className="rounded-2xl bg-white p-4 shadow-sm">
@@ -685,9 +668,18 @@ function Index() {
                 Reset pendapatan harian dan ringkasan bulanan mengikuti zona ini, bukan jam
                 perangkat, jadi datamu tidak rollover dua kali di perangkat berbeda.
               </p>
-              <p role="status" className="mt-2 text-[11px] font-semibold text-slate-600">
-                Hari aktif: {dayKey(timezone)} • Bulan aktif: {monthLabel(periodKey)}
-              </p>
+              <div
+                role="status"
+                className="mt-3 rounded-xl bg-slate-50 p-3 text-[11px] text-slate-600"
+              >
+                <p className="font-bold text-slate-800">
+                  Zona saat ini: {timezoneLabel(timezone)} ({zoneOffsetLabel(timezone)})
+                </p>
+                <p className="mt-0.5">Waktu setempat: {zonedNowLabel(timezone, now)}</p>
+                <p className="mt-0.5">
+                  Hari aktif: {dayKey(timezone)} • Bulan aktif: {monthLabel(periodKey)}
+                </p>
+              </div>
             </section>
 
             <ResetTester
@@ -698,6 +690,16 @@ function Index() {
               disabled={!ready}
               onDailyReset={(day) => setDaily(applyDailyReset(day))}
               onMonthlyReset={(month) => setFlows(applyMonthlyReset(month, WALLETS))}
+            />
+
+            <ManualDateReset
+              wallets={WALLETS}
+              timezone={timezone}
+              disabled={!ready}
+              onReset={(next) => {
+                setDaily(next.daily);
+                setFlows(next.flows);
+              }}
             />
 
             <form
@@ -913,7 +915,7 @@ function Index() {
           aria-label="Navigasi utama"
           className="fixed bottom-0 left-1/2 z-10 w-full max-w-[480px] -translate-x-1/2 rounded-t-2xl bg-white shadow-lg"
         >
-          <div className="grid grid-cols-2">
+          <div className="grid grid-cols-3">
             <button
               type="button"
               onClick={() => setTab("home")}
@@ -936,6 +938,13 @@ function Index() {
               <Settings className="size-5" aria-hidden="true" />
               Pengaturan
             </button>
+            <Link
+              to="/savings"
+              className="flex min-h-11 flex-col items-center gap-1 py-3 text-[11px] font-semibold text-slate-400"
+            >
+              <PiggyBank className="size-5" aria-hidden="true" />
+              Tabungan
+            </Link>
           </div>
         </nav>
       </div>
