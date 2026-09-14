@@ -7,7 +7,6 @@
  */
 
 export const TIMEZONES = [
-  { id: "Asia/Bangkok", label: "Bangkok (UTC+7)" },
   { id: "Asia/Jakarta", label: "WIB — Jakarta (UTC+7)" },
   { id: "Asia/Ho_Chi_Minh", label: "Ho Chi Minh (UTC+7)" },
   { id: "Asia/Makassar", label: "WITA — Makassar (UTC+8)" },
@@ -22,7 +21,7 @@ export const TIMEZONES = [
 
 export type TimezoneId = (typeof TIMEZONES)[number]["id"];
 
-export const DEFAULT_TIMEZONE: TimezoneId = "Asia/Bangkok";
+export const DEFAULT_TIMEZONE: TimezoneId = "Asia/Jakarta";
 
 export const LS_TIMEZONE = "miniapp.timezone";
 
@@ -119,4 +118,37 @@ export function nextMonthKey(zone: TimezoneId, date = new Date()): string {
   const { year, month } = zonedParts(zone, date);
   const next = new Date(Date.UTC(year, month, 1));
   return `${next.getUTCFullYear()}-${pad(next.getUTCMonth() + 1)}`;
+}
+
+/** Current wall-clock time inside `zone`, e.g. "14 September 2026, 17.29". */
+export function zonedNowLabel(zone: TimezoneId, date = new Date()): string {
+  return new Intl.DateTimeFormat("id-ID", {
+    timeZone: zone,
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(date);
+}
+
+/** Current UTC offset of `zone`, e.g. "UTC+7". */
+export function zoneOffsetLabel(zone: TimezoneId, date = new Date()): string {
+  const part = new Intl.DateTimeFormat("en-US", { timeZone: zone, timeZoneName: "shortOffset" })
+    .formatToParts(date)
+    .find((p) => p.type === "timeZoneName")?.value;
+  return part ? part.replace("GMT", "UTC").replace(/^UTC$/, "UTC+0") : "UTC";
+}
+
+/** Strict "YYYY-MM-DD" validator that also rejects impossible calendar dates. */
+export function isDayKey(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [y, m, d] = value.split("-").map(Number);
+  if (m! < 1 || m! > 12 || d! < 1) return false;
+  const date = new Date(Date.UTC(y!, m! - 1, d!));
+  return (
+    date.getUTCFullYear() === y && date.getUTCMonth() === m! - 1 && date.getUTCDate() === d
+  );
+}
+
+/** Month key ("YYYY-MM") of a day key. */
+export function monthOfDayKey(day: string): string {
+  return day.slice(0, 7);
 }

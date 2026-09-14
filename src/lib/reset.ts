@@ -98,3 +98,15 @@ export function parseAmount(raw: string): { ok: true; value: number } | { ok: fa
   if (value > MAX_AMOUNT) return { ok: false, error: "Jumlah terlalu besar." };
   return { ok: true, value: Math.round(value) };
 }
+
+/** Manual rollover to an explicit calendar date: counters restart from that
+ *  date, base wallet balances stay untouched. */
+export function applyDateReset(
+  day: string,
+  wallets: readonly WalletBase[],
+): { daily: DailyStore; flows: FlowStore } {
+  return {
+    daily: { day, in: 0, out: 0 },
+    flows: { month: day.slice(0, 7), data: emptyFlows(wallets) },
+  };
+}
