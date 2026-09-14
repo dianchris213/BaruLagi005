@@ -6,7 +6,6 @@ import {
   Bike,
   Droplets,
   Home,
-  Home,
   PiggyBank,
   Loader2,
   Minus,
@@ -24,7 +23,6 @@ import { generateInsight } from "@/lib/insights.functions";
 import {
   DEFAULT_TIMEZONE,
   LS_TIMEZONE,
-  TIMEZONES,
   dayKey,
   detectTimezone,
   isTimezoneId,
@@ -32,8 +30,6 @@ import {
   monthLabel,
   msUntilZonedMidnight,
   timezoneLabel,
-  zoneOffsetLabel,
-  zonedNowLabel,
   type TimezoneId,
 } from "@/lib/timezone";
 import {
@@ -46,6 +42,7 @@ import {
 } from "@/lib/reset";
 import { ManualDateReset } from "@/components/ManualDateReset";
 import { ResetTester } from "@/components/ResetTester";
+import { TimezonePicker } from "@/components/TimezonePicker";
 
 export const Route = createFileRoute("/")({
   head: () => ({
