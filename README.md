@@ -49,3 +49,10 @@ npm run dev
 - **Kartu Wawasan AI** kini menyegarkan otomatis (debounce 800 ms) setiap kali data
   berubah — tidak lagi menunggu halaman dimuat ulang; permintaan lama dibatalkan agar
   hasil yang tampil selalu yang terbaru.
+
+## Fitur
+
+- **Ringkasan**: dompet, tagihan bulanan, pendapatan bersih harian, wawasan AI.
+- **Kalkulator Tabungan** (`/savings`): target tabungan, arus kas bulanan, dan rekomendasi menabung per bulan.
+- **Zona waktu**: default WIB (Asia/Jakarta); zona aktif, waktu setempat, hari & bulan aktif ditampilkan di Pengaturan.
+- **Reset**: harian, bulanan, dan reset manual ke tanggal tertentu.
