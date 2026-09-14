@@ -19,17 +19,31 @@ export const TIMEZONES = [
   { id: "UTC", label: "UTC (UTC+0)" },
 ] as const;
 
-export type TimezoneId = (typeof TIMEZONES)[number]["id"];
+/**
+ * Any valid IANA zone id. Presets above are shortcuts; the user may also type
+ * a custom zone in Pengaturan, validated against the runtime before use.
+ */
+export type TimezoneId = string;
 
 export const DEFAULT_TIMEZONE: TimezoneId = "Asia/Jakarta";
 
 export const LS_TIMEZONE = "miniapp.timezone";
 
+/** True when the runtime accepts `value` as an IANA timezone. */
 export function isTimezoneId(value: unknown): value is TimezoneId {
-  return typeof value === "string" && TIMEZONES.some((t) => t.id === value);
+  if (typeof value !== "string") return false;
+  const zone = value.trim();
+  if (!zone || zone.length > 64) return false;
+  if (!/^[A-Za-z0-9_+\-/]+$/.test(zone)) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: zone });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-/** Best-effort suggestion based on the device, validated against the list. */
+/** Best-effort suggestion based on the device, validated against the runtime. */
 export function detectTimezone(): TimezoneId {
   try {
     const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -40,8 +54,9 @@ export function detectTimezone(): TimezoneId {
 }
 
 export function timezoneLabel(zone: TimezoneId): string {
-  return TIMEZONES.find((t) => t.id === zone)?.label ?? zone;
+  return TIMEZONES.find((t) => t.id === zone)?.label ?? zone.replace(/_/g, " ");
 }
+
 
 /** Calendar parts (numbers) of `date` as seen inside `zone`. */
 export function zonedParts(zone: TimezoneId, date = new Date()) {

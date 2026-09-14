@@ -5,7 +5,6 @@ import {
   Bell,
   Bike,
   Droplets,
-  Globe2,
   Home,
   PiggyBank,
   Loader2,
@@ -24,7 +23,6 @@ import { generateInsight } from "@/lib/insights.functions";
 import {
   DEFAULT_TIMEZONE,
   LS_TIMEZONE,
-  TIMEZONES,
   dayKey,
   detectTimezone,
   isTimezoneId,
@@ -32,8 +30,6 @@ import {
   monthLabel,
   msUntilZonedMidnight,
   timezoneLabel,
-  zoneOffsetLabel,
-  zonedNowLabel,
   type TimezoneId,
 } from "@/lib/timezone";
 import {
@@ -46,6 +42,7 @@ import {
 } from "@/lib/reset";
 import { ManualDateReset } from "@/components/ManualDateReset";
 import { ResetTester } from "@/components/ResetTester";
+import { TimezonePicker } from "@/components/TimezonePicker";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -648,49 +645,15 @@ function Index() {
             <h1 className="text-xl font-bold text-slate-800">Pengaturan</h1>
             <p className="mt-1 text-sm text-slate-500">Kelola profil dan zona waktu kamu.</p>
 
-            <section
-              aria-label="Zona Waktu"
-              className="mt-5 rounded-2xl bg-white p-5 shadow-sm"
-            >
-              <h2 className="flex items-center gap-2 text-base font-bold text-slate-800">
-                <Globe2 className="size-4" aria-hidden="true" /> Zona Waktu
-              </h2>
-              <label htmlFor="timezone" className="mt-3 block text-xs font-semibold text-slate-800">
-                Zona waktu perhitungan
-              </label>
-              <select
-                id="timezone"
-                value={timezone}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (isTimezoneId(value)) setTimezone(value);
-                }}
-                aria-describedby="timezone-help"
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-slate-800"
-              >
-                {TIMEZONES.map((tz) => (
-                  <option key={tz.id} value={tz.id}>
-                    {tz.label}
-                  </option>
-                ))}
-              </select>
-              <p id="timezone-help" className="mt-2 text-[11px] text-slate-500">
-                Reset pendapatan harian dan ringkasan bulanan mengikuti zona ini, bukan jam
-                perangkat, jadi datamu tidak rollover dua kali di perangkat berbeda.
-              </p>
-              <div
-                role="status"
-                className="mt-3 rounded-xl bg-slate-50 p-3 text-[11px] text-slate-600"
-              >
-                <p className="font-bold text-slate-800">
-                  Zona saat ini: {timezoneLabel(timezone)} ({zoneOffsetLabel(timezone)})
-                </p>
-                <p className="mt-0.5">Waktu setempat: {zonedNowLabel(timezone, now)}</p>
-                <p className="mt-0.5">
-                  Hari aktif: {dayKey(timezone)} • Bulan aktif: {monthLabel(periodKey)}
-                </p>
-              </div>
-            </section>
+            <TimezonePicker
+              timezone={timezone}
+              now={now}
+              dayKeyLabel={dayKey(timezone)}
+              monthKeyLabel={monthLabel(periodKey)}
+              disabled={!ready}
+              onChange={setTimezone}
+            />
+
 
             <ResetTester
               wallets={WALLETS}
