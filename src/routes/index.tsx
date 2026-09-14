@@ -5,7 +5,7 @@ import {
   Bell,
   Bike,
   Droplets,
-  Globe2,
+  Home,
   Home,
   PiggyBank,
   Loader2,
